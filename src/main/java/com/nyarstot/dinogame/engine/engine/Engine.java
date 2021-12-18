@@ -53,7 +53,7 @@ public class Engine implements Runnable{
         glfwShowWindow(window);
 
         GL.createCapabilities();
-        glClearColor(255.f, 255.f, 255.f, 1.f);
+        glClearColor(255.0f, 255.0f, 255.0f, 1.0f);
         glEnable(GL_DEPTH_TEST);
     }
 
@@ -61,11 +61,13 @@ public class Engine implements Runnable{
         glfwPollEvents();
     }
 
-    private void draw() {
+    private void render() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glfwSwapBuffers(window);
     }
+
     // Public
+
     public void runEngine() {
         System.out.println("Starting engine...");
 
@@ -85,7 +87,7 @@ public class Engine implements Runnable{
 
         while (running) {
             update();
-            draw();
+            render();
 
             if (glfwWindowShouldClose(window)) {
                 running = false;
