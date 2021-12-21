@@ -20,8 +20,14 @@ public class Shader {
     public static final int VERTEX_ATTRIB = 0;
     public static final int TCOORD_ATTRIB = 1; // Texture coordinates attribute
 
+    public static Shader BG;
+
     public Shader(String vertex, String fragment) {
         ID = ShaderUtils.load(vertex, fragment);
+    }
+
+    public static void loadAll() {
+        BG = new Shader("C:\\Users\\winte\\source\\Java\\TheDinoGame\\src\\main\\java\\com\\nyarstot\\dinogame\\game\\shaders\\bg.vert","C:\\Users\\winte\\source\\Java\\TheDinoGame\\src\\main\\java\\com\\nyarstot\\dinogame\\game\\shaders\\bg.frag");
     }
 
     public int getUniform(String name) {
