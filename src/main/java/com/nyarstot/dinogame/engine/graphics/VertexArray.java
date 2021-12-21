@@ -25,7 +25,7 @@ public class VertexArray {
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, BufferUtils.createFloatBuffer(vertices), GL_STATIC_DRAW);
         glVertexAttribPointer(Shader.VERTEX_ATTRIB, 3, GL_FLOAT, false, 0, 0);
-        glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(Shader.VERTEX_ATTRIB);
 
         tbo = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, tbo);
@@ -44,7 +44,7 @@ public class VertexArray {
 
     public void bind() {
         glBindVertexArray(vao);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     }
 
     public void unbind() {

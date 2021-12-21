@@ -27,7 +27,7 @@ public class Shader {
     }
 
     public static void loadAll() {
-        BG = new Shader("C:\\Users\\winte\\source\\Java\\TheDinoGame\\src\\main\\java\\com\\nyarstot\\dinogame\\game\\shaders\\bg.vert","C:\\Users\\winte\\source\\Java\\TheDinoGame\\src\\main\\java\\com\\nyarstot\\dinogame\\game\\shaders\\bg.frag");
+        BG = new Shader("shaders/bg.vert","shaders/bg.frag");
     }
 
     public int getUniform(String name) {
