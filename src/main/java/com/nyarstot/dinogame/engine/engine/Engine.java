@@ -10,6 +10,7 @@ import com.nyarstot.dinogame.engine.IO.Input;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
 public class Engine implements Runnable{
@@ -54,18 +55,25 @@ public class Engine implements Runnable{
         GL.createCapabilities();
         glClearColor(255.0f, 255.0f, 255.0f, 1.0f);
         glEnable(GL_DEPTH_TEST);
+        glActiveTexture(GL_TEXTURE1);
         Shader.loadAll();
 
-        Shader.BG.enable();
         Matrix4f pr_matrix = Matrix4f.orthographic(-10.0f, 10.0f, -10.0f * 9.0f / 16.0f, 10.0f * 9.0f / 16.0f, -1.0f, 1.0f);
         Shader.BG.setUniformMat4f("pr_matrix", pr_matrix);
-        Shader.BG.disable();
+        Shader.BG.setUniform1i("bg_texture", 1);
+
+        Shader.PLAYER.setUniformMat4f("pr_matrix", pr_matrix);
+        Shader.PLAYER.setUniform1i("player_texture", 1);
+
+        Shader.GROUND.setUniformMat4f("pr_matrix", pr_matrix);
+        Shader.GROUND.setUniform1i("ground_texture", 1);
 
         level = new Level();
     }
 
     private void update() {
         glfwPollEvents();
+        level.update();
     }
 
     private void render() {
@@ -87,6 +95,14 @@ public class Engine implements Runnable{
     // Run game loop
     public void run() {
         init();
+
+        long  lastTime = System.nanoTime();
+        double delta = 0.0;
+        double ns = 1000000000.0/60.0;
+        long timer = System.currentTimeMillis();
+        int updates = 0;
+        int frames = 0;
+
         GL.createCapabilities();
 
         System.out.println("Engine started successfully");
@@ -94,8 +110,22 @@ public class Engine implements Runnable{
         System.out.println("GLFW: " + glfwGetVersionString());
 
         while (running) {
-            update();
+            long now = System.nanoTime();
+            delta += (now - lastTime) / ns;
+            lastTime = now;
+            if (delta >= 1.0) {
+                update();
+                updates++;
+                delta--;
+            }
             render();
+            frames++;
+            if (System.currentTimeMillis() - timer > 1000) {
+                timer += 1000;
+                System.out.println(updates + " updates | " + frames + "  fps");
+                frames = 0;
+                updates = 0;
+            }
 
             if (glfwWindowShouldClose(window)) {
                 running = false;
