@@ -15,14 +15,14 @@ public class Shader {
     private final int ID;
     private Map<String, Integer> locationCache = new HashMap<String, Integer>();
 
+    private boolean enabled = false;
+
     // Public
 
     public static final int VERTEX_ATTRIB = 0;
     public static final int TCOORD_ATTRIB = 1; // Texture coordinates attribute
 
-    public static Shader BG, PLAYER, GROUND;
-
-    private boolean enabled = false;
+    public static Shader BG, PLAYER, GROUND, FIR;
 
     public Shader(String vertex, String fragment) {
         ID = ShaderUtils.load(vertex, fragment);
@@ -32,6 +32,7 @@ public class Shader {
         BG = new Shader("shaders/bg.vert","shaders/bg.frag");
         PLAYER = new Shader("shaders/player.vert", "shaders/player.frag");
         GROUND = new Shader("shaders/ground.vert", "shaders/ground.frag");
+        FIR = new Shader("shaders/fir.vert", "shaders/fir.frag");
     }
 
     public int getUniform(String name) {

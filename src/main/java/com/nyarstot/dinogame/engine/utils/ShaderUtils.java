@@ -1,7 +1,5 @@
 package com.nyarstot.dinogame.engine.utils;
 
-import java.util.concurrent.CompletionException;
-
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.*;
 

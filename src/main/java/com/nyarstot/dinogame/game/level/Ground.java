@@ -9,11 +9,10 @@ import com.nyarstot.dinogame.engine.math.Vector3f;
 public class Ground {
     // Private
 
-    private  float size = 10.0f;
     private VertexArray mesh;
-
     private Texture texture;
 
+    private final float size = 10.0f;
     private final Vector3f position = new Vector3f(0.f, -2.7f, 0.0f);
 
     // Public

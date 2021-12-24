@@ -16,13 +16,12 @@ import static org.lwjgl.system.MemoryUtil.*;
 public class Engine implements Runnable{
     // Private
 
-    private int width = 800;
-    private int height = 600;
+    private long window;
+    private final int width = 800;
+    private final int height = 600;
 
     private Thread thread;
     private boolean running = false;
-
-    private long window;
 
     private Level level;
 
@@ -68,6 +67,9 @@ public class Engine implements Runnable{
         Shader.GROUND.setUniformMat4f("pr_matrix", pr_matrix);
         Shader.GROUND.setUniform1i("ground_texture", 1);
 
+        Shader.FIR.setUniformMat4f("pr_matrix", pr_matrix);
+        Shader.FIR.setUniform1i("fir_texture", 1);
+
         level = new Level();
     }
 
@@ -92,7 +94,7 @@ public class Engine implements Runnable{
         thread.start();
     }
 
-    // Run game loop
+    // Runs game loop
     public void run() {
         init();
 
@@ -131,5 +133,7 @@ public class Engine implements Runnable{
                 running = false;
             }
         }
+        glfwDestroyWindow(window);
+        glfwTerminate();
     }
 }

@@ -12,7 +12,7 @@ uniform sampler2D player_texture;
 void main()
 {
     color = texture(player_texture, fs_in.tc);
-    if (color.w < 1.0) {
+    if (color.w < 0.5) {
             discard;
         }
 }

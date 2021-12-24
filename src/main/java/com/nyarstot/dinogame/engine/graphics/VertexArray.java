@@ -60,7 +60,4 @@ public class VertexArray {
         bind();
         draw();
     }
-
-
-
 }

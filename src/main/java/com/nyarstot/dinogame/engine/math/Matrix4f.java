@@ -8,15 +8,9 @@ public class Matrix4f {
     // Private
 
     private static final int SIZE = 4*4;
-
-    // Public
-
     private float[] elements = new float[SIZE];
 
-    public Matrix4f() {
-
-    }
-
+    // Public
     public static Matrix4f identity() {
         Matrix4f result = new Matrix4f();
         for (int i = 0; i < SIZE; i++) {

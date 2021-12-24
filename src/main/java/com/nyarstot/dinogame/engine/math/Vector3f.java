@@ -2,7 +2,6 @@ package com.nyarstot.dinogame.engine.math;
 
 public class Vector3f {
     // Private
-
     // Public
 
     public float x, y, z;
