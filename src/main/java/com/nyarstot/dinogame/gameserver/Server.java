@@ -89,7 +89,7 @@ public class Server extends Thread{
                         Float.parseFloat(message.substring(charPos3 + 1))
                 );
 
-                if (clients.get(id) != null) {
+                if (clients.get(id - 1) != null) {
                     clients.get(id - 1).setClientPosition(position);
                     try {
                         broadcastMessage(message);
