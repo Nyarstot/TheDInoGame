@@ -5,8 +5,12 @@ import com.nyarstot.dinogame.engine.graphics.Texture;
 import com.nyarstot.dinogame.engine.graphics.VertexArray;
 import com.nyarstot.dinogame.engine.math.Matrix4f;
 import com.nyarstot.dinogame.engine.math.Vector3f;
+import com.nyarstot.dinogame.engine.networking.Client;
+import com.nyarstot.dinogame.engine.networking.MessageProtocol;
 import com.nyarstot.dinogame.game.player.Player;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Random;
 
 public class Level {
@@ -24,8 +28,13 @@ public class Level {
     private int index = 0;
     private final float OFFSET = 10.0f;
 
+    private Client client;
+    private boolean gameStatus = true;
+
     private Ground ground;
-    private Player player;
+    private ArrayList<Player> players;
+    private Player player = null;
+
 
     private boolean collision() {
         for (int i = 0; i < 10; i++) {
@@ -83,6 +92,13 @@ public class Level {
     // Public
 
     public Level() {
+        players = new ArrayList<>(100);
+        for (int i = 0; i < 100; i++) {
+            players.add(null);
+        }
+
+        client = Client.getClientInstance();
+
         float[] vertices = new float[] {
                 -10.0f, -10.0f * 9.0f / 16.0f, 0.0f,
                 -10.0f,  10.0f * 9.0f / 16.0f, 0.0f,
@@ -106,25 +122,27 @@ public class Level {
         bgTexture = new Texture("res/backgrounds/bg_mountains.png");
 
         ground = new Ground();
-        player = new Player();
+//        player = new Player();
 
         createObstacles();
     }
 
     public void update() {
-        xScroll--;
-        if (-xScroll % 600 == 0) {
-            map++;
-        }
-        if (-xScroll > 50 && -xScroll % 100 == 0) {
-            updateObstacles();
-        }
-
-        player.update();
-
-        if (collision()) {
-            control = false;
-            player.death();
+        if (gameStatus == true) {
+            xScroll--;
+            if (-xScroll % 600 == 0) {
+                map++;
+            }
+            if (-xScroll > 50 && -xScroll % 100 == 0) {
+                updateObstacles();
+            }
+            for (int i = 0; i < players.size(); i++) {
+                if (players.get(i) != null) {
+                    players.get(i).update();
+                    client.sendToServer(new MessageProtocol().packetUpdate(players.get(i).getPosition(), players.get(i).getId()));
+                }
+            }
+//            player.update();
         }
     }
 
@@ -142,6 +160,26 @@ public class Level {
 
         ground.render();
         renderObstacles();
-        player.render();
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i) != null) {
+                players.get(i).render();
+            }
+        }
+//        player.render();
+    }
+
+    public void registerNewPlayer(Player newPlayer) {
+        if (newPlayer.getId() == 2) {
+            newPlayer.setPosition(new Vector3f(-8.5f, -2.2f, 0f));
+        }
+        players.set(newPlayer.getId(), newPlayer);
+    }
+
+    public Player getPlayer(int id) {
+        return players.get(id);
+    }
+
+    public void removePlayer(int id) {
+        players.set(id, null);
     }
 }

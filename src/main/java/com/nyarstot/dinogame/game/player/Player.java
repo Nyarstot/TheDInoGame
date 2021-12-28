@@ -6,6 +6,8 @@ import com.nyarstot.dinogame.engine.graphics.Texture;
 import com.nyarstot.dinogame.engine.graphics.VertexArray;
 import com.nyarstot.dinogame.engine.math.Matrix4f;
 import com.nyarstot.dinogame.engine.math.Vector3f;
+import com.nyarstot.dinogame.engine.networking.Client;
+import com.nyarstot.dinogame.engine.networking.MessageProtocol;
 
 import java.util.Timer;
 
@@ -21,12 +23,15 @@ public class Player {
     private Vector3f position =  new Vector3f(-5.2f, -2.2f, 0.0f);
 
     private float delta = 0;
+    private int id;
+
+    Client client;
 
     // Public
 
-    public int score;
-
     public Player() {
+        client = Client.getClientInstance();
+
         float[] vertices = new float[] {
                 - size / 1.5f, -size / 1.5f, 0.2f,
                 - size / 1.5f,  size / 1.5f, 0.2f,
@@ -78,6 +83,15 @@ public class Player {
         position.y = -15.f;
     }
 
+    public void setId(int id) { this.id = id; }
+    public int getId() { return id; }
+
+    public void setPosition(Vector3f pos) {
+        position.x = pos.x;
+        position.y = pos.y;
+        position.z = pos.z;
+    }
+    public Vector3f getPosition() { return position; }
     public float getSize() {
         return size;
     }

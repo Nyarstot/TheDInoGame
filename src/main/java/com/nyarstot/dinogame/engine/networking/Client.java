@@ -1,83 +1,64 @@
 package com.nyarstot.dinogame.engine.networking;
 
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.nio.charset.StandardCharsets;
+import com.nyarstot.dinogame.engine.math.Vector3f;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 
 public class Client {
     // Private
 
-    private DatagramSocket socket;
-    private InetAddress serverAddress;
+    private Socket clientSocket;
+    private String hostName;
+
     private int port;
+    private DataOutputStream writer;
+    private MessageProtocol packetManager;
 
-    private int clientID;
+    private static Client client;
 
-    private String lastMessage;
+    private Client() throws IOException {
+        packetManager = new MessageProtocol();
+    }
 
     // Public
 
-    public Client(String address, int port) {
-        try {
-            this.serverAddress = InetAddress.getByName(address);
-            this.port = port;
-            socket = new DatagramSocket();
+    public void register(String ip, int port, Vector3f position) throws IOException {
+        this.port = port;
+        this.hostName = ip;
+        clientSocket = new Socket(ip, port);
 
-            receive();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        writer = new DataOutputStream(clientSocket.getOutputStream());
+        writer.writeUTF(packetManager.packetRegister(position));
     }
 
-    public void receive() {
-        Thread serverThread = new Thread() {
-            public void run() {
-                try {
-                    byte[] rawData = new byte[1024];
-                    DatagramPacket packet = new DatagramPacket(rawData, rawData.length);
-                    socket.receive(packet);
-
-                    String message = new String(rawData);
-                    message = message.substring(0, message.indexOf("\\e"));
-
-                    if (!commandCorrect(message)) {
-                        lastMessage = message;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+    public void sendToServer(String message) {
+        if (message.equals("\\exit")) {
+            System.exit(0);
+        } else {
+            try {
+                Socket socket = new Socket(hostName, port);
+                System.out.println("Server: " + message);
+                writer = new DataOutputStream(socket.getOutputStream());
+                writer.writeUTF(message);
+            } catch (IOException e) {
+                System.err.println("Data can't be send to server");
+                e.printStackTrace();
             }
-        };
-        serverThread.run();
-    }
-
-    public void send(String message) {
-        try {
-            message = message + "\\e";
-            byte[] data = message.getBytes(StandardCharsets.UTF_8);
-            DatagramPacket packet = new DatagramPacket(data, data.length, serverAddress, port);
-            socket.send(packet);
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
-    public boolean commandCorrect(String message) {
-        if (message.startsWith("\\cid: ")) {
-            this.clientID = Integer.parseInt(message.substring(6));
-            return true;
+    public static Client getClientInstance() {
+        if (client == null) {
+            try {
+                client = new Client();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        return false;
+        return client;
     }
 
-    public int getClientID() {
-        return clientID;
-    }
-
-    public String getMessage() {
-        String message = lastMessage;
-        lastMessage = null;
-        return message;
-    }
+    public Socket getClientSocket() { return clientSocket; }
 }

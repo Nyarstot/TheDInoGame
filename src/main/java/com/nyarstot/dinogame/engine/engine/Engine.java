@@ -2,11 +2,18 @@ package com.nyarstot.dinogame.engine.engine;
 
 import com.nyarstot.dinogame.engine.graphics.Shader;
 import com.nyarstot.dinogame.engine.math.Matrix4f;
+import com.nyarstot.dinogame.engine.math.Vector3f;
+import com.nyarstot.dinogame.engine.networking.Client;
 import com.nyarstot.dinogame.game.level.Level;
+import com.nyarstot.dinogame.game.player.Player;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 
 import com.nyarstot.dinogame.engine.IO.Input;
+
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.net.Socket;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -24,6 +31,10 @@ public class Engine implements Runnable{
     private boolean running = false;
 
     private Level level;
+
+    // CLIENT STUFF
+    private Player player;
+    private Client client;
 
     private void init() {
         System.out.println("Initializing...");
@@ -70,7 +81,11 @@ public class Engine implements Runnable{
         Shader.FIR.setUniformMat4f("pr_matrix", pr_matrix);
         Shader.FIR.setUniform1i("fir_texture", 1);
 
+        player = new Player();
         level = new Level();
+
+        client = Client.getClientInstance();
+        tryRegisterClient();
     }
 
     private void update() {
@@ -124,7 +139,7 @@ public class Engine implements Runnable{
             frames++;
             if (System.currentTimeMillis() - timer > 1000) {
                 timer += 1000;
-                System.out.println(updates + " updates | " + frames + "  fps");
+                //System.out.println(updates + " updates | " + frames + "  fps");
                 frames = 0;
                 updates = 0;
             }
@@ -135,5 +150,112 @@ public class Engine implements Runnable{
         }
         glfwDestroyWindow(window);
         glfwTerminate();
+    }
+
+    public void tryRegisterClient() {
+        try {
+            client.register("localhost", 6066, new Vector3f());
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            new ClientReceivingThread(client.getClientSocket()).start();
+        } catch (IOException e) {
+            System.err.println("Server error: The server is not running");
+            e.printStackTrace();
+        }
+    }
+
+    public class ClientReceivingThread extends Thread {
+        // Private
+
+        private Socket clientSocket;
+        private DataInputStream reader;
+
+        // Public
+
+        public ClientReceivingThread(Socket clientSocket) {
+            this.clientSocket = clientSocket;
+            try {
+                reader = new DataInputStream(clientSocket.getInputStream());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void run() {
+            while (running) {
+                String message = "";
+                System.out.println("Engine socket message stack: " + message);
+                try {
+                    message = reader.readUTF();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.exit(-1);
+                }
+
+                if (message.startsWith("ID: ")) {
+                    int id = Integer.parseInt(message.substring(4));
+                    player.setId(id);
+                    System.out.println("My id is " + id);
+                } else if (message.startsWith("New Client: ")) {
+                    // New Client: 1|5,2,3
+                    int charPos1 = message.indexOf('|');
+                    int charPos2 = message.indexOf(',');
+                    int charPos3 = message.indexOf(',', charPos2 + 1);
+
+                    int id = Integer.parseInt(message.substring(12, charPos1));
+                    Vector3f position = new Vector3f(
+                            Float.parseFloat(message.substring(charPos1 + 1, charPos2)),
+                            Float.parseFloat(message.substring(charPos2 + 1, charPos3)),
+                            Float.parseFloat(message.substring(charPos3 + 1, message.length()))
+                    );
+                    if (id != player.getId()) {
+                        level.registerNewPlayer(player);
+                    }
+                } else if (message.startsWith("\\upd: ")) {
+                    int charPos1 = message.indexOf('|');
+                    int charPos2 = message.indexOf(',');
+                    int charPos3 = message.indexOf(',', charPos2 + 1);
+
+                    int id = Integer.parseInt(message.substring(6, charPos1));
+                    Vector3f position = new Vector3f(
+                            Float.parseFloat(message.substring(charPos1 + 1, charPos2)),
+                            Float.parseFloat(message.substring(charPos2 + 1, charPos3)),
+                            Float.parseFloat(message.substring(charPos3 + 1, message.length()))
+                    );
+
+                    if (id != player.getId()) {
+                        level.getPlayer(id).setPosition(position);
+                        level.update();
+                    }
+                } else if (message.startsWith("\\rmv ")) {
+                    int id = Integer.parseInt(message.substring(5));
+
+                    if (id == player.getId()) {
+                        System.out.println("REMOVE");
+                    } else {
+                        level.removePlayer(id);
+                    }
+
+                } else if (message.startsWith("\\exit ")) {
+                    int id = Integer.parseInt(message.substring(6));
+
+                    if (id != player.getId()) {
+                        level.removePlayer(id);
+                    }
+                }
+            }
+
+            try {
+                reader.close();
+                clientSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+
     }
 }
